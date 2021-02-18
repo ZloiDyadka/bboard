@@ -2,7 +2,22 @@ from django.contrib import admin
 from .models import AdvUser
 import datetime
 from .utilities import send_activation_notification
-# Register your models here.
+from .models import SuperRubric, SubRubric
+from .forms import SubRubrickForm
+
+class SubRubricAdmin(admin.ModelAdmin):
+    form = SubRubrickForm
+
+admin.site.register(SubRubric, SubRubricAdmin)
+
+class SubRubricInLine(admin.TabularInline):
+    model = SubRubric
+
+class SuperRubricAdmin(admin.ModelAdmin):
+    exclude = ('super_rubric',)
+    inlines = (SubRubricInLine,)
+
+admin.site.register(SuperRubric, SuperRubricAdmin)
 
 def send_activation_notifications(modeladmin, request, queryset):
     for rec in queryset:

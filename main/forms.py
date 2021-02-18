@@ -6,6 +6,13 @@ from django.contrib.auth import password_validation
 from django.core.exceptions import ValidationError
 
 from .apps import user_registered
+from .models import SuperRubric, SubRubric
+
+class SubRubrickForm(forms.ModelForm):
+	super_rubric = forms.ModelChoiceField(queryset=SuperRubric.objects.all(), empty_label=None, label='надрубрика', required=True)
+	class Meta:
+		model = SubRubric
+		fields = '__all__'
 
 
 
