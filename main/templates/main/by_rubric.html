@@ -24,9 +24,9 @@
         {% url 'main:detail' rubric_pk=rubric.pk pk=bb.pk as url %}
         <a href="{{ url }}{{ all }}">
         {% if bb.image %}
-        <img class="mr-3" src="{% thumbnail bb.image 'default' %}">
+        <img class="mr-3" src="{% thumbnail bb.image 'default' %}" alt="text">
         {% else %}
-        <img class="mr-3" src="{% static 'main/empty.jpg' %}">
+        <img class="mr-3" src="{% static 'main/empty.jpg' %}" alt="text">
         {% endif %}
         </a>
         <div class="media-body">
