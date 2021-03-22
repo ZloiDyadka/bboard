@@ -4,13 +4,17 @@ from bboard.settings import ALLOWED_HOSTS
 from datetime import datetime
 from os.path import splitext
 
+
 def get_timestamp_path(instance, filename):
     return '%s%s' % (datetime.now().timestamp(), splitext(filename)[1])
 
 
+signer = Signer()                       # Цифровая подпись
 
-signer= Signer()
+
 def send_activation_notification(user):
+    """ рассылка электронных писем
+     формирование адреса"""
     if ALLOWED_HOSTS:
         host = 'http://' + ALLOWED_HOSTS[0]
     else:

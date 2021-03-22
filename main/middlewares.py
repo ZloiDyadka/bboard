@@ -1,6 +1,9 @@
 from .models import SubRubric
 
 def bboard_context_processor(request):
+
+    """ вывод списка рубрик """
+
     context = {}
     context['rubrics'] = SubRubric.objects.all()
     context['keyword'] = ''

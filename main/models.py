@@ -6,6 +6,9 @@ from .utilities import get_timestamp_path
 # Create your models here.
 
 class Rubric(models.Model):
+
+    """ Модель рубрика """
+
     name = models.CharField(max_length=20, db_index=True, unique=True, verbose_name='название')
     order = models.SmallIntegerField(default=0, db_index=True, verbose_name='порядок')
     super_rubric = models.ForeignKey('SuperRubric', on_delete=models.PROTECT, null=True, blank=True,
@@ -13,11 +16,17 @@ class Rubric(models.Model):
 
 
 class SuperRubricManager(models.Manager):
+
+    """ Диспетчер записей """
+
     def get_queryset(self):
         return super().get_queryset().filter(super_rubric__isnull=True)
 
 
 class SuperRubric(Rubric):
+
+    """ Модель надрубрика """
+
     object = SuperRubricManager()
 
     def __str__(self):
@@ -31,11 +40,17 @@ class SuperRubric(Rubric):
 
 
 class SubRubricManager(models.Manager):
+
+    """ Диспетчер записей"""
+
     def get_queryset(self):
         return super().get_queryset().filter(super_rubric__isnull=False)
 
 
 class SubRubric(Rubric):
+
+    """ Модель подрубрик """
+
     objects = SubRubricManager()
 
     def __str__(self):
@@ -49,8 +64,11 @@ class SubRubric(Rubric):
 
 
 class AdvUser(AbstractUser):
-    is_activated = models.BooleanField(default=True, db_index=True, verbose_name='прошел активацию?')
-    send_messages = models.BooleanField(default=True, verbose_name='Слать оповещания о новых комментариях?')
+
+    """ модель абстрактного пользователя """
+
+    is_activated = models.BooleanField(default=True, db_index=True, verbose_name='прошел активацию?')          # прошел ли активацию
+    send_messages = models.BooleanField(default=True, verbose_name='Слать оповещания о новых комментариях?')   # Нужно ли получать уведомления
 
     def delete(self, *args, **kwargs):
         for bb in self.bb_set.all():

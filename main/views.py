@@ -55,26 +55,35 @@ def by_rubric(request, pk):
 
 
 class DeleteUserView(LoginRequiredMixin, DeleteView):
+
+    """ Удаление текущего пользователя """
+
     model = AdvUser
     template_name = 'main/delete_user.html'
     success_url = reverse_lazy('main:index')
 
     def setup(self, request, *args, **kwargs):
+        """ ключ текущего пользователя """
         self.user_id = request.user.pk
         return super().setup(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
+        """ Выход пользователя и вывод сообщения """
         logout(request)
         messages.add_message(request, messages.SUCCESS, 'пользователь удален')
         return super().post(request, *args, **kwargs)
 
     def get_object(self, queryset=None):
+        """ поиск по ключу пользователя """
         if not queryset:
             queryset = self.get_queryset()
         return get_object_or_404(queryset, pk=self.user_id)
 
 
 def user_activate(request, sign):
+
+    """ Активация пользователя """
+
     try:
         username = signer.unsign(sign)
     except BadSignature:
@@ -91,23 +100,36 @@ def user_activate(request, sign):
 
 
 class RegisterUserView(CreateView):
+
+    """ Регистрирует пользователя """
+
     model = AdvUser
     template_name = 'main/register_user.html'
     form_class = RegisterUserForm
     success_url = reverse_lazy('main:register_done')
 
-
 class RegisterDoneView(TemplateView):
+    """ Сообщает об успешной регистрации """
     template_name = 'main/register_done.html'
 
 
 class BBPasswordChangeView(SuccessMessageMixin, LoginRequiredMixin, PasswordChangeView):
+
+    """ Правка пароля """
+
     template_name = 'main/password_change.html'
     success_url = reverse_lazy('main:profile')
     success_message = 'Пароль пользователя изменен'
 
 
 class ChangeUserInfoView(SuccessMessageMixin, LoginRequiredMixin, UpdateView):
+
+    """ Правка основных сведений пользователя
+    UpdateView - правка записи моделей
+    LoginRequiredMixin - суперкласс запрещающий доступ к контроллеру гостям
+    SuccessMessageMixin - применяется для вывода всплывающих сообщений
+    об успешном выполнении операции"""
+
     model = AdvUser
     template_name = 'main/change_user_info.html'
     form_class = ChangeUserInfoForm
@@ -115,39 +137,53 @@ class ChangeUserInfoView(SuccessMessageMixin, LoginRequiredMixin, UpdateView):
     success_message = 'Данные пользователя изменены'
 
     def setup(self, request, *args, **kwargs):
+        """Метод для получения ключа пользователя"""
         self.user_id = request.user.pk
         return super().setup(request, *args, **kwargs)
 
     def get_object(self, queryset=None):
+        """ Извлечение исравляемой записи """
         if not queryset:
             queryset = self.get_queryset()
         return get_object_or_404(queryset, pk=self.user_id)
 
 
 class BBLoginView(LoginView):
+    """ Реализация входа  """
     template_name = 'main/login.html'
 
 
 class BBLogoutView(LoginRequiredMixin, LogoutView):
+    """ реализация выхода """
     template_name = 'main/logout.html'
 
 
 def index(request):
+
+    """ Начальная(вспомогательная) страница выводящая 10 последних объявлений,
+     основой является базовый шаблон """
+
     bbs = Bb.objects.filter(is_active=True)[:10]
     context = {'bbs': bbs}
     return render(request, 'main/index.html', context)
 
 
 def other_page(request, page):
+
+    """ Контроллер выводящий вспомогательные страницы,
+    page - имя выводимой страницы
+    template - загрузка шаблона или перехват исключения и генерация другого """
+
     try:
         template = get_template('main/' + page + '.html')
-    except TemplateDoesNotExist:
+    except TemplateDoesNotExist:                                        # исключение
         raise Http404
     return HttpResponse(template.render(request=request))
 
 
-@login_required
+@login_required  # декоратор, означает что страница доступна только авторизованым пользователям
 def profile(request):
+    """ Выводит страницу пользовательского профиля """
     bbs = Bb.objects.filter(author=request.user.pk)
     context = {'bbs': bbs}
     return render(request, 'main/profile.html', context)
