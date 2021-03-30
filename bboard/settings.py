@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'bootstrap4',
     'django_cleanup',
     'easy_thumbnails',
+    'captcha',
 ]
 
 MIDDLEWARE = [
@@ -125,11 +126,12 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-
-AUTH_USER_MODEL = 'main.AdvUser'                    # указываем как модель пользователя для разграничения пользователя
+""" Настройка почты для отправки писем, настройка thumbnail """
+AUTH_USER_MODEL = 'main.AdvUser'
 EMAIL_PORT = 1025
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
+
 THUMBNAIL_ALIASES = {
     '': {
         'default': {

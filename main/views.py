@@ -27,14 +27,16 @@ from .models import SubRubric, Bb
 from .forms import SearchForm
 from django.shortcuts import redirect
 from .forms import BbForm, AIFormSet
+from .models import Comment
+from .forms import UserCommentForm, GuestCommentForm
 
 
 # Create your views here.
 
 
 
-
 def by_rubric(request, pk):
+    """ вывод объявлений """
     rubric = get_object_or_404(SubRubric, pk=pk)
     bbs = Bb.objects.filter(is_active=True, rubric=pk)
     if 'keyword' in request.GET:
@@ -183,13 +185,14 @@ def other_page(request, page):
 
 @login_required  # декоратор, означает что страница доступна только авторизованым пользователям
 def profile(request):
-    """ Выводит страницу пользовательского профиля """
+    """ Выводобъявлений оставленных текущим пользователем """
     bbs = Bb.objects.filter(author=request.user.pk)
     context = {'bbs': bbs}
     return render(request, 'main/profile.html', context)
 
 @login_required
 def profile_bb_add(request):
+    """ добавление """
     if request.method == 'POST':
         form = BbForm(request.POST, request.FILES)
         if form.is_valid():
@@ -208,22 +211,41 @@ def profile_bb_add(request):
 
 @login_required
 def profile_bb_detail(request, pk):
+    """ правка """
     bb = get_object_or_404(Bb, pk=pk)
     ais = bb.additionalimage_set.all()
-    # comments = Comment.objects.filter(bb=pk, is_active=True)
+    #comments = Comment.objects.filter(bb=pk, is_active=True)
     context = {'bb': bb, 'ais': ais}
     return render(request, 'main/profile_bb_detail.html', context)
 
 
 def detail(request, rubric_pk, pk):
-    bb = get_object_or_404(Bb, pk=pk)
+    """ сведения об объявлении и комментарии"""
+    bb = Bb.objects.get(pk=pk)
     ais = bb.additionalimage_set.all()
-    context = {'bb': bb, 'ais': ais}
+    comments = Comment.objects.filter(bb=pk, is_active=True)
+    initial = {'bb': bb.pk}
+    if request.user.is_authenticated:
+        initial['author'] = request.user.username
+        form_class = UserCommentForm
+    else:
+        form_class = GuestCommentForm
+    form = form_class(initial=initial)
+    if request.method == 'POST':
+        c_form = form_class(request.POST)
+        if c_form.is_valid():
+            c_form.save()
+            messages.add_message(request, messages.SUCCESS, 'Комментарий добавлен')
+        else:
+            form = c_form
+            messages.add_message(request, messages.WARNING, 'Комментарий не добавлен')
+    context = {'bb': bb, 'ais': ais, 'comments': comments, 'form': form}
     return render(request, 'main/detail.html', context)
 
 
 @login_required
 def profile_bb_change(request, pk):
+    """ правка """
     bb = get_object_or_404(Bb, pk=pk)
     if request.method == 'POST':
         form = BbForm(request.POST, request.FILES, instance=bb)
@@ -244,6 +266,7 @@ def profile_bb_change(request, pk):
 
 @login_required
 def profile_bb_delete(request, pk):
+    """ удаление """
     bb = get_object_or_404(Bb, pk=pk)
     if request.method == 'POST':
         bb.delete()

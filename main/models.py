@@ -5,8 +5,9 @@ from .utilities import get_timestamp_path
 
 # Create your models here.
 
-class Rubric(models.Model):
 
+
+class Rubric(models.Model):
     """ Модель рубрика """
 
     name = models.CharField(max_length=20, db_index=True, unique=True, verbose_name='название')
@@ -16,7 +17,6 @@ class Rubric(models.Model):
 
 
 class SuperRubricManager(models.Manager):
-
     """ Диспетчер записей """
 
     def get_queryset(self):
@@ -24,7 +24,6 @@ class SuperRubricManager(models.Manager):
 
 
 class SuperRubric(Rubric):
-
     """ Модель надрубрика """
 
     object = SuperRubricManager()
@@ -40,7 +39,6 @@ class SuperRubric(Rubric):
 
 
 class SubRubricManager(models.Manager):
-
     """ Диспетчер записей"""
 
     def get_queryset(self):
@@ -48,7 +46,6 @@ class SubRubricManager(models.Manager):
 
 
 class SubRubric(Rubric):
-
     """ Модель подрубрик """
 
     objects = SubRubricManager()
@@ -64,13 +61,17 @@ class SubRubric(Rubric):
 
 
 class AdvUser(AbstractUser):
-
     """ модель абстрактного пользователя """
 
-    is_activated = models.BooleanField(default=True, db_index=True, verbose_name='прошел активацию?')          # прошел ли активацию
-    send_messages = models.BooleanField(default=True, verbose_name='Слать оповещания о новых комментариях?')   # Нужно ли получать уведомления
+    is_activated = models.BooleanField(default=True, db_index=True,
+                                       verbose_name='прошел активацию?')  # прошел ли активацию
+    send_messages = models.BooleanField(default=True,
+                                        verbose_name='Слать оповещания о новых комментариях?')  # Нужно ли получать уведомления
 
     def delete(self, *args, **kwargs):
+
+        """ удаление объявлений при удалении пользователя"""
+
         for bb in self.bb_set.all():
             bb.delete()
         super().delete(*args, **kwargs)
@@ -79,8 +80,10 @@ class AdvUser(AbstractUser):
         pass
 
 
-
 class Bb(models.Model):
+
+    """ Модель объявлений """
+
     rubric = models.ForeignKey(SubRubric, on_delete=models.PROTECT, verbose_name='Рубрика')
     title = models.CharField(max_length=40, verbose_name='Товар')
     content = models.TextField(verbose_name='Описание')
@@ -92,6 +95,7 @@ class Bb(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, db_index=True, verbose_name='опубликовано')
 
     def delete(self, *args, **kwargs):
+        """ удаление записи """
         for ai in self.additionalimage_set.all():
             ai.delete()
         super().delete(*args, **kwargs)
@@ -103,9 +107,24 @@ class Bb(models.Model):
 
 
 class AdditionalImage(models.Model):
+    """ добавление картинки """
     bb = models.ForeignKey(Bb, on_delete=models.CASCADE, verbose_name='Объявления')
     image = models.ImageField(upload_to=get_timestamp_path, verbose_name='Изображение')
 
     class Meta:
         verbose_name_plural = 'Дополнительные иллюстрация'
         verbose_name = 'Дополнительная иллюстрация'
+
+
+
+class Comment(models.Model):
+    bb = models.ForeignKey(Bb, on_delete=models.CASCADE, verbose_name='Объявление')
+    author = models.CharField(max_length=30, verbose_name='Автор')
+    content = models.TextField(verbose_name='Содержание')
+    is_active = models.BooleanField(default=True, db_index=True, verbose_name='Выводить на экран?')
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True, verbose_name='опубликован')
+
+    class Meta:
+        verbose_name_plural = 'Комментарии'
+        verbose_name = 'Комментарий'
+        ordering = ['created_at']

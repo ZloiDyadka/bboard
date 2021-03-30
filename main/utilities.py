@@ -6,6 +6,7 @@ from os.path import splitext
 
 
 def get_timestamp_path(instance, filename):
+    """ генерирует имена выгруженных файлов """
     return '%s%s' % (datetime.now().timestamp(), splitext(filename)[1])
 
 

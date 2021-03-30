@@ -8,10 +8,16 @@ from .models import Bb, AdditionalImage
 
 
 class AdditionalImageInline(admin.TabularInline):
+
+    """ редактор доп.илюстраций """
+
     model = AdditionalImage
 
 
 class BbAdmin(admin.ModelAdmin):
+
+    """ редактор объявлений """
+
     list_display = ('rubric', 'title', 'content', 'author', 'created_at')
     fields = (('rubric', 'author'), 'title', 'content', 'price', 'contacts', 'image', 'is_active')
     inlines = (AdditionalImageInline,)
